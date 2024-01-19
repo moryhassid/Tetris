@@ -48,15 +48,30 @@ def get_piece_of_puzzle():
     return chosen_puzzle
 
 
-def draw_piece_of_puzzle(piece_of_puzzle, given_screen):
-    brick = pygame.Rect(WIDTH_SCREEN // 2,
-                        HEIGHT_SCREEN // 2,
-                        SQUARE_WIDTH,
-                        SQUARE_HEIGHT)
+def draw_piece_of_puzzle(piece_of_puzzle, given_screen, color_chosen):
+    start_x_pos = WIDTH_SCREEN // 2
+    start_y_pos = HEIGHT_SCREEN // 2
+    for row_idx, row in enumerate(piece_of_puzzle):
+        for col_idx, cell in enumerate(row):
+            print(f'cell[{row_idx},{col_idx}] = {cell}')
 
-    draw.rect(surface=given_screen,
-              color=BLUE,
-              rect=brick)
+            if cell == 1:
+                pos_x = start_x_pos + col_idx * SQUARE_WIDTH
+                pos_y = start_y_pos + row_idx * SQUARE_HEIGHT
+                brick = pygame.Rect(pos_x,
+                                    pos_y,
+                                    SQUARE_WIDTH,
+                                    SQUARE_HEIGHT)
+
+                draw.rect(surface=given_screen,
+                          color=color_chosen,
+                          rect=brick)
+
+                for i in range(4):
+                    pygame.draw.rect(given_screen,
+                                     (0, 0, 0),
+                                     (pos_x, pos_y, SQUARE_WIDTH, SQUARE_HEIGHT),
+                                     1)
 
 
 class Tetromino:
@@ -75,12 +90,13 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((WIDTH_SCREEN, HEIGHT_SCREEN))
 
+    puzzle_piece = get_piece_of_puzzle()
+    color_of_piece = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
     while True:
         screen.fill(BACKGROUND_COLOR)
-
-        puzzle_piece = get_piece_of_puzzle()
         draw_piece_of_puzzle(piece_of_puzzle=puzzle_piece,
-                             given_screen=screen)
+                             given_screen=screen,
+                             color_chosen=color_of_piece)
 
         for event in pygame.event.get():
             # here we are checking if the user wants to exit the game
@@ -95,6 +111,7 @@ if __name__ == '__main__':
         elif keys[pygame.K_LEFT]:
             print('Left was pressed')
         elif keys[pygame.K_UP]:
+            puzzle_piece = np.rot90(puzzle_piece)
             print('Up was pressed')
         elif keys[pygame.K_DOWN]:
             print('Down was pressed')
