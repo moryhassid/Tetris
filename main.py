@@ -149,10 +149,18 @@ if __name__ == '__main__':
     puzzle_piece_y = HEIGHT_SCREEN // 10
     has_reached_floor = False
     has_reached_left_right_borders = False
+    puzzle_counter_appears_on_screen = 0
+    collection_of_pieces_of_puzzle_on_screen = [puzzle_piece]
     while True:
         screen.fill(BACKGROUND_COLOR)
+
+        if has_reached_floor:
+            puzzle_counter_appears_on_screen += 1
+            new_puzzle = get_piece_of_puzzle()
+            collection_of_pieces_of_puzzle_on_screen.append(new_puzzle)
+
         counter_to_move_down_puzzle_piece += 1
-        draw_piece_of_puzzle(piece_of_puzzle=puzzle_piece,
+        draw_piece_of_puzzle(piece_of_puzzle=collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen],
                              given_screen=screen,
                              color_chosen=color_of_piece, start_x_pos=puzzle_piece_x, start_y_pos=puzzle_piece_y)
 
@@ -179,7 +187,8 @@ if __name__ == '__main__':
         elif keys[pygame.K_UP]:
             counter_key_pressed += 1
             if counter_key_pressed == 2:
-                puzzle_piece = np.rot90(puzzle_piece)
+                collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen] = np.rot90(
+                    collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen])
                 counter_key_pressed = 0
             print('Up was pressed')
         elif keys[pygame.K_DOWN]:
@@ -190,11 +199,13 @@ if __name__ == '__main__':
             print('Mory is closing the game, he has pressed Escape button')
             exit(0)
 
-        has_reached_floor = have_reached_bottom_of_screen(puzzle=puzzle_piece,
-                                                          pos_y=puzzle_piece_y)
+        has_reached_floor = have_reached_bottom_of_screen(
+            puzzle=collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen],
+            pos_y=puzzle_piece_y)
 
-        has_reached_left_right_borders = have_reached_left_or_right_borders(puzzle=puzzle_piece,
-                                                                            pos_x=puzzle_piece_x)
+        has_reached_left_right_borders = have_reached_left_or_right_borders(
+            puzzle=collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen],
+            pos_x=puzzle_piece_x)
 
         # Very important each frame we should use to  put your work on screen
         pygame.display.flip()
