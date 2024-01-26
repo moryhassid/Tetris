@@ -17,6 +17,7 @@ BACKGROUND_COLOR = (255, 255, 255)
 NUM_TYPES_OF_PUZZLE_PIECES = 8
 SQUARE_WIDTH = 20
 SQUARE_HEIGHT = 20
+VISIBLE_BRICK = 1
 
 
 def get_piece_of_puzzle():
@@ -48,14 +49,12 @@ def get_piece_of_puzzle():
     return chosen_puzzle
 
 
-def draw_piece_of_puzzle(piece_of_puzzle, given_screen, color_chosen):
-    start_x_pos = WIDTH_SCREEN // 2
-    start_y_pos = HEIGHT_SCREEN // 2
+def draw_piece_of_puzzle(piece_of_puzzle, given_screen, color_chosen, start_x_pos, start_y_pos):
     for row_idx, row in enumerate(piece_of_puzzle):
         for col_idx, cell in enumerate(row):
-            print(f'cell[{row_idx},{col_idx}] = {cell}')
+            # print(f'cell[{row_idx},{col_idx}] = {cell}')
 
-            if cell == 1:
+            if cell == VISIBLE_BRICK:
                 pos_x = start_x_pos + col_idx * SQUARE_WIDTH
                 pos_y = start_y_pos + row_idx * SQUARE_HEIGHT
                 brick = pygame.Rect(pos_x,
@@ -67,11 +66,37 @@ def draw_piece_of_puzzle(piece_of_puzzle, given_screen, color_chosen):
                           color=color_chosen,
                           rect=brick)
 
+                # Perimeter for the puzzle piece
                 for i in range(4):
                     pygame.draw.rect(given_screen,
                                      (0, 0, 0),
                                      (pos_x, pos_y, SQUARE_WIDTH, SQUARE_HEIGHT),
                                      1)
+
+
+class PuzzlePiece:
+    def __init__(self):
+        self.collection_of_puzzles = [np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
+                                      np.array([[1, 1, 1, 1]]),
+                                      np.array([[1, 1], [1, 1]]),
+                                      np.array([[1, 1, 1], [0, 0, 1]]),
+                                      np.array([[1, 1]]),
+                                      np.array([[1, 1, 1], [0, 1, 0]]),
+                                      np.array([[1, 1, 0], [0, 1, 1]]),
+                                      np.array([[1, 0], [1, 1]])]
+
+        self.puzzle = []
+
+    def init_new_piece(self):
+        puzzle_number = random.randint(0, NUM_TYPES_OF_PUZZLE_PIECES - 1)
+        chosen_puzzle = self.collection_of_puzzles[puzzle_number]
+        self.puzzle = chosen_puzzle
+
+    def rotate_piece_of_puzzle(self):
+        self.puzzle = np.rot90(self.puzzle)
+
+    def bring_down(self):
+        pass
 
 
 class Tetromino:
@@ -85,6 +110,12 @@ class Tetromino:
 
 
 if __name__ == '__main__':
+
+    puzzle = PuzzlePiece()
+    puzzle.init_new_piece()
+    puzzle.rotate_piece_of_puzzle()
+
+    # exit()
     print('Welcome!')
     pygame.init()
     clock = pygame.time.Clock()
@@ -92,11 +123,14 @@ if __name__ == '__main__':
 
     puzzle_piece = get_piece_of_puzzle()
     color_of_piece = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
+    counter_key_pressed = 0
+    puzzle_piece_x = WIDTH_SCREEN // 2
+    puzzle_piece_y = HEIGHT_SCREEN // 10
     while True:
         screen.fill(BACKGROUND_COLOR)
         draw_piece_of_puzzle(piece_of_puzzle=puzzle_piece,
                              given_screen=screen,
-                             color_chosen=color_of_piece)
+                             color_chosen=color_of_piece, start_x_pos=puzzle_piece_x, start_y_pos=puzzle_piece_y)
 
         for event in pygame.event.get():
             # here we are checking if the user wants to exit the game
@@ -108,11 +142,17 @@ if __name__ == '__main__':
 
         if keys[pygame.K_RIGHT]:
             print('Right was pressed')
+            puzzle_piece_x += 20
         elif keys[pygame.K_LEFT]:
             print('Left was pressed')
+            puzzle_piece_x -= 20
         elif keys[pygame.K_UP]:
-            puzzle_piece = np.rot90(puzzle_piece)
+            counter_key_pressed += 1
+            if counter_key_pressed == 2:
+                puzzle_piece = np.rot90(puzzle_piece)
+                counter_key_pressed = 0
             print('Up was pressed')
+
         elif keys[pygame.K_DOWN]:
             print('Down was pressed')
         elif keys[pygame.K_ESCAPE]:
