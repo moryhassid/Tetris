@@ -21,127 +21,85 @@ VISIBLE_BRICK = 1
 STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = 10
 
 
-def get_piece_of_puzzle():
-    collection_of_puzzles = [np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
-                             np.array([[1, 1, 1, 1]]),
-                             np.array([[1, 1], [1, 1]]),
-                             np.array([[1, 1, 1], [0, 0, 1]]),
-                             np.array([[1, 1]]),
-                             np.array([[1, 1, 1], [0, 1, 0]]),
-                             np.array([[1, 1, 0], [0, 1, 1]]),
-                             np.array([[1, 0], [1, 1]])]
-    angles = [0, 90, 180, 270]
-    # for piece_of_puzzle in collection_of_puzzles:
-    #     print(piece_of_puzzle)
-    #     print('#' * 50)
-    puzzle_number = random.randint(0, NUM_TYPES_OF_PUZZLE_PIECES - 1)
-    chosen_puzzle = collection_of_puzzles[puzzle_number]
-    chosen_angle = random.choice(angles)
-    num_rotations = chosen_angle // 90
-    # print(f'To get to {chosen_angle}, we need to rotate {num_rotations} times')
-    # print('Original chosen puzzle:')
-    # print(chosen_puzzle)
-    # print('-' * 50)
-    for idx in range(num_rotations):
-        chosen_puzzle = np.rot90(chosen_puzzle)
-        # print(chosen_puzzle)
-        # print('#' * 50)
-
-    return chosen_puzzle
-
-
-def draw_piece_of_puzzle(piece_of_puzzle, given_screen, color_chosen, start_x_pos, start_y_pos):
-    for row_idx, row in enumerate(piece_of_puzzle):
-        for col_idx, cell in enumerate(row):
-            # print(f'cell[{row_idx},{col_idx}] = {cell}')
-
-            if cell == VISIBLE_BRICK:
-                pos_x = start_x_pos + col_idx * SQUARE_WIDTH
-                pos_y = start_y_pos + row_idx * SQUARE_HEIGHT
-                brick = pygame.Rect(pos_x,
-                                    pos_y,
-                                    SQUARE_WIDTH,
-                                    SQUARE_HEIGHT)
-
-                draw.rect(surface=given_screen,
-                          color=color_chosen,
-                          rect=brick)
-
-                # Perimeter for the puzzle piece
-                for i in range(4):
-                    pygame.draw.rect(given_screen,
-                                     (0, 0, 0),
-                                     (pos_x, pos_y, SQUARE_WIDTH, SQUARE_HEIGHT),
-                                     1)
-
-
 class PuzzlePiece:
     def __init__(self):
-        self.collection_of_puzzles = [np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
-                                      np.array([[1, 1, 1, 1]]),
-                                      np.array([[1, 1], [1, 1]]),
-                                      np.array([[1, 1, 1], [0, 0, 1]]),
-                                      np.array([[1, 1]]),
-                                      np.array([[1, 1, 1], [0, 1, 0]]),
-                                      np.array([[1, 1, 0], [0, 1, 1]]),
-                                      np.array([[1, 0], [1, 1]])]
-
-        self.puzzle = []
-
-    def init_new_piece(self):
+        self.puzzles_types = [np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
+                              np.array([[1, 1, 1, 1]]),
+                              np.array([[1, 1], [1, 1]]),
+                              np.array([[1, 1, 1], [0, 0, 1]]),
+                              np.array([[1, 1]]),
+                              np.array([[1, 1, 1], [0, 1, 0]]),
+                              np.array([[1, 1, 0], [0, 1, 1]]),
+                              np.array([[1, 0], [1, 1]])]
+        self.chosen_color = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
+        self.start_pos_x = WIDTH_SCREEN // 2
+        self.start_pos_y = HEIGHT_SCREEN // 10
         puzzle_number = random.randint(0, NUM_TYPES_OF_PUZZLE_PIECES - 1)
-        chosen_puzzle = self.collection_of_puzzles[puzzle_number]
-        self.puzzle = chosen_puzzle
+        self.puzzle_shape = self.puzzles_types[puzzle_number]
 
     def rotate_piece_of_puzzle(self):
-        self.puzzle = np.rot90(self.puzzle)
+        self.puzzle_shape = np.rot90(self.puzzle_shape)
 
-    def bring_down(self):
-        pass
+    def show_piece_on_screen(self, given_screen):
+        for row_idx, row in enumerate(self.puzzle_shape):
+            for col_idx, cell in enumerate(row):
+                # print(f'cell[{row_idx},{col_idx}] = {cell}')
 
+                if cell == VISIBLE_BRICK:
+                    #     puzzle_piece_x = WIDTH_SCREEN // 2
+                    #     puzzle_piece_y = HEIGHT_SCREEN // 10
+                    pos_x = self.start_pos_x + col_idx * SQUARE_WIDTH
+                    pos_y = self.start_pos_y + row_idx * SQUARE_HEIGHT
+                    brick = pygame.Rect(pos_x,
+                                        pos_y,
+                                        SQUARE_WIDTH,
+                                        SQUARE_HEIGHT)
 
-def have_reached_bottom_of_screen(puzzle, pos_y):
-    lowest_part_of_the_puzzle_y_axis = pos_y + puzzle.shape[0] * SQUARE_HEIGHT
+                    draw.rect(surface=given_screen,
+                              color=self.chosen_color,
+                              rect=brick)
 
-    if lowest_part_of_the_puzzle_y_axis >= HEIGHT_SCREEN:
-        return True
+                    # Perimeter for the puzzle piece
+                    for i in range(4):
+                        pygame.draw.rect(given_screen,
+                                         (0, 0, 0),
+                                         (pos_x, pos_y, SQUARE_WIDTH, SQUARE_HEIGHT),
+                                         1)
 
-    return False
+    def move_down_piece_of_puzzle(self):
+        self.start_pos_y += 5
 
+    def move_left_piece_of_puzzle(self):
+        self.start_pos_x -= STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS
 
-def have_reached_left_or_right_borders(puzzle, pos_x):
-    right_part_of_the_puzzle_x_axis = pos_x + puzzle.shape[1] * SQUARE_WIDTH
-    left_part_of_the_puzzle_x_axis = pos_x
+    def move_right_piece_of_puzzle(self):
+        self.start_pos_x += STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS
 
-    if right_part_of_the_puzzle_x_axis >= WIDTH_SCREEN or left_part_of_the_puzzle_x_axis <= 0:
-        return True
+    def has_reached_left_or_right_borders(self):
+        right_part_of_the_puzzle_x_axis = self.start_pos_x + self.puzzle_shape.shape[1] * SQUARE_WIDTH
+        left_part_of_the_puzzle_x_axis = self.start_pos_x
 
-    return False
+        if right_part_of_the_puzzle_x_axis >= WIDTH_SCREEN or left_part_of_the_puzzle_x_axis <= 0:
+            return True
 
+        return False
 
-class Tetromino:
-    def __init__(self, x, y, shape):
-        colors = [BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE]
-        self.x = x
-        self.y = y
-        self.shape = shape
-        self.color = random.choice(colors)
-        self.rotation = 0
+    def has_reached_bottom_of_screen(self):
+        lowest_part_of_the_puzzle_y_axis = self.start_pos_y + self.puzzle_shape.shape[0] * SQUARE_HEIGHT
+
+        if lowest_part_of_the_puzzle_y_axis >= HEIGHT_SCREEN:
+            return True
+
+        return False
 
 
 if __name__ == '__main__':
 
-    puzzle = PuzzlePiece()
-    puzzle.init_new_piece()
-    puzzle.rotate_piece_of_puzzle()
-
-    # exit()
     print('Welcome!')
     pygame.init()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((WIDTH_SCREEN, HEIGHT_SCREEN))
 
-    puzzle_piece = get_piece_of_puzzle()
     color_of_piece = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
     counter_key_pressed = 0
     counter_to_move_down_puzzle_piece = 0
@@ -150,19 +108,18 @@ if __name__ == '__main__':
     has_reached_floor = False
     has_reached_left_right_borders = False
     puzzle_counter_appears_on_screen = 0
-    collection_of_pieces_of_puzzle_on_screen = [puzzle_piece]
+
+    current_puzzle_piece = PuzzlePiece()
+    current_puzzle_piece.rotate_piece_of_puzzle()
+
     while True:
         screen.fill(BACKGROUND_COLOR)
 
         if has_reached_floor:
             puzzle_counter_appears_on_screen += 1
-            new_puzzle = get_piece_of_puzzle()
-            collection_of_pieces_of_puzzle_on_screen.append(new_puzzle)
 
         counter_to_move_down_puzzle_piece += 1
-        draw_piece_of_puzzle(piece_of_puzzle=collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen],
-                             given_screen=screen,
-                             color_chosen=color_of_piece, start_x_pos=puzzle_piece_x, start_y_pos=puzzle_piece_y)
+        current_puzzle_piece.show_piece_on_screen(given_screen=screen)
 
         for event in pygame.event.get():
             # here we are checking if the user wants to exit the game
@@ -170,42 +127,43 @@ if __name__ == '__main__':
                 print('Mory is closing the game')
                 exit(0)
 
-        if counter_to_move_down_puzzle_piece > 10 and not has_reached_floor:
-            puzzle_piece_y += 20
-            counter_to_move_down_puzzle_piece = 0
+        # if counter_to_move_down_puzzle_piece > 10 and not has_reached_floor:
+        #     puzzle_piece_y += 20
+        #     counter_to_move_down_puzzle_piece = 0
 
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_RIGHT]:
             print('Right was pressed')
             if not has_reached_left_right_borders:
-                puzzle_piece_x += STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS
+                current_puzzle_piece.move_right_piece_of_puzzle()
         elif keys[pygame.K_LEFT]:
             print('Left was pressed')
             if not has_reached_left_right_borders:
-                puzzle_piece_x -= STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS
+                current_puzzle_piece.move_left_piece_of_puzzle()
         elif keys[pygame.K_UP]:
-            counter_key_pressed += 1
-            if counter_key_pressed == 2:
-                collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen] = np.rot90(
-                    collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen])
-                counter_key_pressed = 0
+            current_puzzle_piece.rotate_piece_of_puzzle()
+            # counter_key_pressed += 1
+            # if counter_key_pressed == 2:
+            #     collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen] = np.rot90(
+            #         collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen])
+            #     counter_key_pressed = 0
             print('Up was pressed')
         elif keys[pygame.K_DOWN]:
             print('Down was pressed')
             if not has_reached_floor:
-                puzzle_piece_y += 5
+                current_puzzle_piece.move_down_piece_of_puzzle()
         elif keys[pygame.K_ESCAPE]:
             print('Mory is closing the game, he has pressed Escape button')
             exit(0)
 
-        has_reached_floor = have_reached_bottom_of_screen(
-            puzzle=collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen],
-            pos_y=puzzle_piece_y)
+        has_reached_floor = current_puzzle_piece.has_reached_bottom_of_screen()
+        has_reached_left_right_borders = current_puzzle_piece.has_reached_left_or_right_borders()
 
-        has_reached_left_right_borders = have_reached_left_or_right_borders(
-            puzzle=collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen],
-            pos_x=puzzle_piece_x)
+        # The piece puzzle is moving constantly down towards the ground.
+        # until it meets another brick or the ground
+        if not has_reached_floor:
+            current_puzzle_piece.move_down_piece_of_puzzle()
 
         # Very important each frame we should use to  put your work on screen
         pygame.display.flip()
