@@ -96,6 +96,9 @@ class PuzzlePiece:
 class CollectionOfPuzzles:
     def __init__(self):
         self.all_pieces_of_puzzles_so_far = []
+        # For following the perimeter of the bricks that are on the screen,
+        # I'm using a list of heights per each slice of width SQUARE_WIDTH.
+        self.heights_per_width_slices = [0] * (WIDTH_SCREEN // SQUARE_WIDTH)
 
     def add_piece_of_puzzle_to_collection(self, puzzle_piece):
         self.all_pieces_of_puzzles_so_far.append(puzzle_piece)
