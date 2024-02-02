@@ -93,6 +93,18 @@ class PuzzlePiece:
         return False
 
 
+class CollectionOfPuzzles:
+    def __init__(self):
+        self.all_pieces_of_puzzles_so_far = []
+
+    def add_piece_of_puzzle_to_collection(self, puzzle_piece):
+        self.all_pieces_of_puzzles_so_far.append(puzzle_piece)
+
+    def show_all_pieces_on_screen(self, given_screen):
+        for piece in self.all_pieces_of_puzzles_so_far:
+            piece.show_piece_on_screen(given_screen)
+
+
 if __name__ == '__main__':
 
     print('Welcome!')
@@ -110,16 +122,18 @@ if __name__ == '__main__':
     puzzle_counter_appears_on_screen = 0
 
     current_puzzle_piece = PuzzlePiece()
-    current_puzzle_piece.rotate_piece_of_puzzle()
+    collection_of_puzzle_pieces = CollectionOfPuzzles()
+    collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection(current_puzzle_piece)
 
     while True:
         screen.fill(BACKGROUND_COLOR)
 
         if has_reached_floor:
-            puzzle_counter_appears_on_screen += 1
+            current_puzzle_piece = PuzzlePiece()
+            collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection(current_puzzle_piece)
 
+        collection_of_puzzle_pieces.show_all_pieces_on_screen(screen)
         counter_to_move_down_puzzle_piece += 1
-        current_puzzle_piece.show_piece_on_screen(given_screen=screen)
 
         for event in pygame.event.get():
             # here we are checking if the user wants to exit the game
