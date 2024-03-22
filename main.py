@@ -4,6 +4,7 @@ import numpy as np
 import time
 from pygame import draw
 
+# Colors:
 BLUE = (0, 0, 255)
 LIGHT_BLUE = (173, 216, 230)
 GREEN = (0, 128, 0)
@@ -18,7 +19,7 @@ NUM_TYPES_OF_PUZZLE_PIECES = 8
 SQUARE_WIDTH = 20
 SQUARE_HEIGHT = 20
 VISIBLE_BRICK = 1
-STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = 10
+STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = SQUARE_WIDTH
 
 
 class PuzzlePiece:
@@ -33,7 +34,7 @@ class PuzzlePiece:
                               np.array([[1, 0], [1, 1]])]
         self.chosen_color = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
         self.start_pos_x = WIDTH_SCREEN // 2
-        self.start_pos_y = HEIGHT_SCREEN // 10
+        self.start_pos_y = 3 * SQUARE_HEIGHT  # 55
         puzzle_number = random.randint(0, NUM_TYPES_OF_PUZZLE_PIECES - 1)
         self.puzzle_shape = self.puzzles_types[puzzle_number]
 
@@ -84,10 +85,16 @@ class PuzzlePiece:
 
         return False
 
-    def has_reached_bottom_of_screen(self):
+    def has_reached_bottom_of_screen(self, collection):
         lowest_part_of_the_puzzle_y_axis = self.start_pos_y + self.puzzle_shape.shape[0] * SQUARE_HEIGHT
-
-        if lowest_part_of_the_puzzle_y_axis >= HEIGHT_SCREEN:
+        cell_number = self.start_pos_x // SQUARE_WIDTH
+        number_of_cells_fits_on_screen_along_x_axis = WIDTH_SCREEN // SQUARE_WIDTH
+        print(f'puzzle number in x axis: {cell_number}/{number_of_cells_fits_on_screen_along_x_axis}')
+        height_for_given_x = collection.heights_per_width_slices[cell_number]
+        if lowest_part_of_the_puzzle_y_axis >= HEIGHT_SCREEN - height_for_given_x:
+            # TODO: Fix the bug here!!!
+            if collection.heights_per_width_slices[cell_number] > HEIGHT_SCREEN - height_for_given_x:
+                collection.heights_per_width_slices[cell_number] = HEIGHT_SCREEN - height_for_given_x
             return True
 
         return False
@@ -111,6 +118,7 @@ class CollectionOfPuzzles:
 if __name__ == '__main__':
 
     print('Welcome!')
+
     pygame.init()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((WIDTH_SCREEN, HEIGHT_SCREEN))
@@ -174,11 +182,12 @@ if __name__ == '__main__':
             print('Mory is closing the game, he has pressed Escape button')
             exit(0)
 
-        has_reached_floor = current_puzzle_piece.has_reached_bottom_of_screen()
+        has_reached_floor = current_puzzle_piece.has_reached_bottom_of_screen(collection_of_puzzle_pieces)
         has_reached_left_right_borders = current_puzzle_piece.has_reached_left_or_right_borders()
 
         # The piece puzzle is moving constantly down towards the ground.
         # until it meets another brick or the ground
+        print(f'heights_per_width_slices = {collection_of_puzzle_pieces.heights_per_width_slices}')
         if not has_reached_floor:
             current_puzzle_piece.move_down_piece_of_puzzle()
 
@@ -187,6 +196,6 @@ if __name__ == '__main__':
 
         # limits FPS to 60
         # dt is delta time in seconds since last frame, used for framerate independent physics.
-        dt = clock.tick(20) / 1000
+        dt = clock.tick(5) / 1000  # 1000
 
     pygame.quit()
