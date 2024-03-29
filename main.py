@@ -13,9 +13,8 @@ RED = (255, 0, 0)
 ORANGE = (255, 140, 0)
 PURPLE = (128, 0, 128)
 WIDTH_SCREEN = 320
-HEIGHT_SCREEN = 550
+HEIGHT_SCREEN = 600
 BACKGROUND_COLOR = (255, 255, 255)
-NUM_TYPES_OF_PUZZLE_PIECES = 8
 SQUARE_WIDTH = 20
 SQUARE_HEIGHT = 20
 VISIBLE_BRICK = 1
@@ -24,17 +23,20 @@ STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = SQUARE_WIDTH
 
 class PuzzlePiece:
     def __init__(self):
-        self.puzzles_types = [np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
-                              np.array([[1, 1, 1, 1]]),
-                              np.array([[1, 1], [1, 1]]),
-                              np.array([[1, 1, 1], [0, 0, 1]]),
-                              np.array([[1, 1]]),
-                              np.array([[1, 1, 1], [0, 1, 0]]),
-                              np.array([[1, 1, 0], [0, 1, 1]]),
-                              np.array([[1, 0], [1, 1]])]
+        self.puzzles_types = [
+            # np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
+            np.array([[1, 1, 1, 1]]),
+            # np.array([[1, 1], [1, 1]]),
+            # np.array([[1, 1, 1], [0, 0, 1]]),
+            np.array([[1, 1]]),
+            # np.array([[1, 1, 1], [0, 1, 0]]),
+            # np.array([[1, 1, 0], [0, 1, 1]]),
+            # np.array([[1, 0], [1, 1]])
+        ]
         self.chosen_color = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
         self.start_pos_x = WIDTH_SCREEN // 2
-        self.start_pos_y = 3 * SQUARE_HEIGHT  # 55
+        self.start_pos_y = 3 * SQUARE_HEIGHT
+        NUM_TYPES_OF_PUZZLE_PIECES = len(self.puzzles_types)
         puzzle_number = random.randint(0, NUM_TYPES_OF_PUZZLE_PIECES - 1)
         self.puzzle_shape = self.puzzles_types[puzzle_number]
 
@@ -68,7 +70,7 @@ class PuzzlePiece:
                                          1)
 
     def move_down_piece_of_puzzle(self):
-        self.start_pos_y += 5
+        self.start_pos_y += SQUARE_HEIGHT
 
     def move_left_piece_of_puzzle(self):
         self.start_pos_x -= STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS
@@ -85,16 +87,30 @@ class PuzzlePiece:
 
         return False
 
-    def has_reached_bottom_of_screen(self, collection):
+    def has_reached_bottom_of_screen(self, collection, puzzle_number):
         lowest_part_of_the_puzzle_y_axis = self.start_pos_y + self.puzzle_shape.shape[0] * SQUARE_HEIGHT
-        cell_number = self.start_pos_x // SQUARE_WIDTH
-        number_of_cells_fits_on_screen_along_x_axis = WIDTH_SCREEN // SQUARE_WIDTH
-        print(f'puzzle number in x axis: {cell_number}/{number_of_cells_fits_on_screen_along_x_axis}')
-        height_for_given_x = collection.heights_per_width_slices[cell_number]
-        if lowest_part_of_the_puzzle_y_axis >= HEIGHT_SCREEN - height_for_given_x:
-            # TODO: Fix the bug here!!!
-            if collection.heights_per_width_slices[cell_number] > HEIGHT_SCREEN - height_for_given_x:
-                collection.heights_per_width_slices[cell_number] = HEIGHT_SCREEN - height_for_given_x
+        cell_number_start = self.start_pos_x // SQUARE_WIDTH
+        cell_number_end = (self.start_pos_x + self.puzzle_shape.shape[1] * SQUARE_WIDTH) // SQUARE_WIDTH
+        # number_of_cells_fits_on_screen_along_x_axis = WIDTH_SCREEN // SQUARE_WIDTH
+        # print(f'puzzle number in x axis: {cell_number}/{number_of_cells_fits_on_screen_along_x_axis}')
+        height_for_given_x = collection.heights_per_width_slices[cell_number_start]
+        # print(f'{height_for_given_x=}')
+        # if puzzle_number == 2:
+        #     print(f'{lowest_part_of_the_puzzle_y_axis=} ? ({(HEIGHT_SCREEN-height_for_given_x)=})')
+        #     if lowest_part_of_the_puzzle_y_axis == (HEIGHT_SCREEN - height_for_given_x):
+        #         print('debug')
+        #
+        # if lowest_part_of_the_puzzle_y_axis > (HEIGHT_SCREEN - height_for_given_x):
+        #     # TODO: Fix the bug here!!!
+        #     if collection.heights_per_width_slices[cell_number] > HEIGHT_SCREEN - height_for_given_x:
+        #         collection.heights_per_width_slices[cell_number] = HEIGHT_SCREEN - height_for_given_x
+        #     return True
+
+        print(f'{lowest_part_of_the_puzzle_y_axis=} ? ({(HEIGHT_SCREEN-height_for_given_x)=})')
+        if lowest_part_of_the_puzzle_y_axis == (HEIGHT_SCREEN - height_for_given_x):
+            # collection.heights_per_width_slices[cell_number_start] = HEIGHT_SCREEN - height_for_given_x - SQUARE_HEIGHT
+            for idx in range(cell_number_start, cell_number_end):
+                collection.heights_per_width_slices[idx] = HEIGHT_SCREEN - height_for_given_x - SQUARE_HEIGHT
             return True
 
         return False
@@ -136,10 +152,13 @@ if __name__ == '__main__':
     collection_of_puzzle_pieces = CollectionOfPuzzles()
     collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection(current_puzzle_piece)
 
+    counter_puzzle_pieces = 1
+
     while True:
         screen.fill(BACKGROUND_COLOR)
 
         if has_reached_floor:
+            counter_puzzle_pieces += 1
             current_puzzle_piece = PuzzlePiece()
             collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection(current_puzzle_piece)
 
@@ -182,7 +201,8 @@ if __name__ == '__main__':
             print('Mory is closing the game, he has pressed Escape button')
             exit(0)
 
-        has_reached_floor = current_puzzle_piece.has_reached_bottom_of_screen(collection_of_puzzle_pieces)
+        has_reached_floor = current_puzzle_piece.has_reached_bottom_of_screen(collection_of_puzzle_pieces,
+                                                                              counter_puzzle_pieces)
         has_reached_left_right_borders = current_puzzle_piece.has_reached_left_or_right_borders()
 
         # The piece puzzle is moving constantly down towards the ground.
