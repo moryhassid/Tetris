@@ -12,11 +12,15 @@ YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
 ORANGE = (255, 140, 0)
 PURPLE = (128, 0, 128)
+BACKGROUND_COLOR = (255, 255, 255)
+
+# Screen Size
 WIDTH_SCREEN = 320
 HEIGHT_SCREEN = 600
-BACKGROUND_COLOR = (255, 255, 255)
+
 SQUARE_WIDTH = 20
 SQUARE_HEIGHT = 20
+
 VISIBLE_BRICK = 1
 STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = SQUARE_WIDTH
 
@@ -63,11 +67,15 @@ class PuzzlePiece:
                               rect=brick)
 
                     # Perimeter for the puzzle piece
-                    for i in range(4):
-                        pygame.draw.rect(given_screen,
-                                         (0, 0, 0),
-                                         (pos_x, pos_y, SQUARE_WIDTH, SQUARE_HEIGHT),
-                                         1)
+                    self.add_border_to_square(given_screen, pos_x, pos_y)
+
+    @staticmethod
+    def add_border_to_square(given_screen, pos_x, pos_y):
+        for i in range(4):
+            pygame.draw.rect(given_screen,
+                             (0, 0, 0),
+                             (pos_x, pos_y, SQUARE_WIDTH, SQUARE_HEIGHT),
+                             1)
 
     def move_down_piece_of_puzzle(self):
         self.start_pos_y += SQUARE_HEIGHT
@@ -87,6 +95,10 @@ class PuzzlePiece:
 
         return False
 
+    @staticmethod
+    def get_height_of_specific_column_in_puzzle(puzzle_piece, column_number):
+        return len(np.where(puzzle_piece[:, column_number] > 0)[0])
+
     def has_reached_bottom_of_screen(self, collection, puzzle_number):
         lowest_part_of_the_puzzle_y_axis = self.start_pos_y + self.puzzle_shape.shape[0] * SQUARE_HEIGHT
         cell_number_start = self.start_pos_x // SQUARE_WIDTH
@@ -94,23 +106,15 @@ class PuzzlePiece:
         # number_of_cells_fits_on_screen_along_x_axis = WIDTH_SCREEN // SQUARE_WIDTH
         # print(f'puzzle number in x axis: {cell_number}/{number_of_cells_fits_on_screen_along_x_axis}')
         height_for_given_x = collection.heights_per_width_slices[cell_number_start]
-        # print(f'{height_for_given_x=}')
-        # if puzzle_number == 2:
-        #     print(f'{lowest_part_of_the_puzzle_y_axis=} ? ({(HEIGHT_SCREEN-height_for_given_x)=})')
-        #     if lowest_part_of_the_puzzle_y_axis == (HEIGHT_SCREEN - height_for_given_x):
-        #         print('debug')
-        #
-        # if lowest_part_of_the_puzzle_y_axis > (HEIGHT_SCREEN - height_for_given_x):
-        #     # TODO: Fix the bug here!!!
-        #     if collection.heights_per_width_slices[cell_number] > HEIGHT_SCREEN - height_for_given_x:
-        #         collection.heights_per_width_slices[cell_number] = HEIGHT_SCREEN - height_for_given_x
-        #     return True
+        print(f'{height_for_given_x=}')
 
-        print(f'{lowest_part_of_the_puzzle_y_axis=} ? ({(HEIGHT_SCREEN-height_for_given_x)=})')
-        if lowest_part_of_the_puzzle_y_axis == (HEIGHT_SCREEN - height_for_given_x):
-            # collection.heights_per_width_slices[cell_number_start] = HEIGHT_SCREEN - height_for_given_x - SQUARE_HEIGHT
+        if lowest_part_of_the_puzzle_y_axis == HEIGHT_SCREEN:
+            print('debug')
+        if lowest_part_of_the_puzzle_y_axis == height_for_given_x:
             for idx in range(cell_number_start, cell_number_end):
-                collection.heights_per_width_slices[idx] = HEIGHT_SCREEN - height_for_given_x - SQUARE_HEIGHT
+                collection.heights_per_width_slices[idx] = \
+                    height_for_given_x - SQUARE_HEIGHT * self.get_height_of_specific_column_in_puzzle(
+                        puzzle_piece=self.puzzle_shape, column_number=idx-cell_number_start)
             return True
 
         return False
@@ -121,7 +125,7 @@ class CollectionOfPuzzles:
         self.all_pieces_of_puzzles_so_far = []
         # For following the perimeter of the bricks that are on the screen,
         # I'm using a list of heights per each slice of width SQUARE_WIDTH.
-        self.heights_per_width_slices = [0] * (WIDTH_SCREEN // SQUARE_WIDTH)
+        self.heights_per_width_slices = [HEIGHT_SCREEN] * (WIDTH_SCREEN // SQUARE_WIDTH)
 
     def add_piece_of_puzzle_to_collection(self, puzzle_piece):
         self.all_pieces_of_puzzles_so_far.append(puzzle_piece)
