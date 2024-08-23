@@ -28,18 +28,20 @@ Using the list we can easily understand what is the maximum height in each slice
 I'd like to find out what is the full row, and after finding our I should remove the complete row.
 As seen in the illustration below:
 
-![gg](images\seq1_phase4.jpg)
-
 <p align="center">
   <img src="images\seq1_phase4.jpg" width="700">
 </p>
 
-![gg](images\seq2_a.jpg)
+
+
+The are cases the row won't be filled since there are some holes, as seen in the illustration below.  
+Therefore, we should make use of a grid. The grid will store the status of each brick or lack of brick. 
 
 <p align="center">
   <img src="images\seq2_a.jpg" width="700">
 </p>
 
+Here is the content of the grid:
 
 <p align="center">
   <img src="images\seq2_b_grid.jpg" width="700">
