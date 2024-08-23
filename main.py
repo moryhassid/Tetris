@@ -17,10 +17,9 @@ BACKGROUND_COLOR = (255, 255, 255)
 # Screen Size
 WIDTH_SCREEN = 320
 HEIGHT_SCREEN = 600
-
 SQUARE_WIDTH = 20
 SQUARE_HEIGHT = 20
-
+NUMBER_OF_BRICKS_PER_ROW = WIDTH_SCREEN // SQUARE_WIDTH
 VISIBLE_BRICK = 1
 STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = SQUARE_WIDTH
 
@@ -112,12 +111,22 @@ class PuzzlePiece:
             print('debug')
         if lowest_part_of_the_puzzle_y_axis == height_for_given_x:
             for idx in range(cell_number_start, cell_number_end):
+                print(f'{collection.heights_per_width_slices=}')
                 collection.heights_per_width_slices[idx] = \
                     height_for_given_x - SQUARE_HEIGHT * self.get_height_of_specific_column_in_puzzle(
-                        puzzle_piece=self.puzzle_shape, column_number=idx-cell_number_start)
-            return True
+                        puzzle_piece=self.puzzle_shape, column_number=idx - cell_number_start)
+            return True, self.puzzle_shape
 
-        return False
+        return False, None
+
+    # @staticmethod
+    # def is_row_was_completed():
+    #     return True
+    #
+    @staticmethod
+    def update_heights_per_width_slices_after_row_completed(collection):
+        for idx in range(len(collection.heights_per_width_slices)):
+            collection.heights_per_width_slices[idx] -= SQUARE_HEIGHT
 
 
 class CollectionOfPuzzles:
@@ -126,9 +135,39 @@ class CollectionOfPuzzles:
         # For following the perimeter of the bricks that are on the screen,
         # I'm using a list of heights per each slice of width SQUARE_WIDTH.
         self.heights_per_width_slices = [HEIGHT_SCREEN] * (WIDTH_SCREEN // SQUARE_WIDTH)
+        # self.grid = np.zeros((HEIGHT_SCREEN // SQUARE_HEIGHT, WIDTH_SCREEN // SQUARE_WIDTH), dtype=int)
+        self.grid = []
 
     def add_piece_of_puzzle_to_collection(self, puzzle_piece):
         self.all_pieces_of_puzzles_so_far.append(puzzle_piece)
+
+    #     for row_idx, row in enumerate(puzzle_piece.puzzle_shape):
+    #         for col_idx, cell in enumerate(row):
+    #             if cell == VISIBLE_BRICK:
+    #                 grid_row = (puzzle_piece.start_pos_y // SQUARE_HEIGHT) + row_idx
+    #                 grid_col = (puzzle_piece.start_pos_x // SQUARE_WIDTH) + col_idx
+    #                 self.grid[grid_row, grid_col] = 1
+    #
+    # def clear_full_rows(self):
+    #     full_rows = []
+    #     for row_idx in range(len(self.grid)):
+    #         if np.all(self.grid[row_idx]):
+    #             full_rows.append(row_idx)
+    #
+    #     # Clear full rows and shift down
+    #     for row_idx in full_rows:
+    #         self.grid[1:row_idx + 1] = self.grid[:row_idx]
+    #         self.grid[0] = 0  # Clear the top row
+    #
+    #     # Adjust heights based on cleared rows
+    #     for col_idx in range(len(self.heights_per_width_slices)):
+    #         # Reduce heights for each column based on the number of cleared rows
+    #         for cleared_row in full_rows:
+    #             # Only reduce height if the cleared row was below this column
+    #             if self.heights_per_width_slices[col_idx] >= cleared_row * SQUARE_HEIGHT:
+    #                 self.heights_per_width_slices[col_idx] -= SQUARE_HEIGHT
+    #
+    #     return len(full_rows)
 
     def show_all_pieces_on_screen(self, given_screen):
         for piece in self.all_pieces_of_puzzles_so_far:
@@ -205,8 +244,15 @@ if __name__ == '__main__':
             print('Mory is closing the game, he has pressed Escape button')
             exit(0)
 
-        has_reached_floor = current_puzzle_piece.has_reached_bottom_of_screen(collection_of_puzzle_pieces,
-                                                                              counter_puzzle_pieces)
+        has_reached_floor, puzzle_shape_reached = current_puzzle_piece.has_reached_bottom_of_screen(
+            collection_of_puzzle_pieces,
+            counter_puzzle_pieces)
+
+        if has_reached_floor:
+            collection_of_puzzle_pieces.grid = np.zeros((puzzle_shape_reached.shape[0], NUMBER_OF_BRICKS_PER_ROW),
+                                                        dtype=int)
+            # TODO: Should complete copying the previous values of the grid.
+
         has_reached_left_right_borders = current_puzzle_piece.has_reached_left_or_right_borders()
 
         # The piece puzzle is moving constantly down towards the ground.
