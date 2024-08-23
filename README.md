@@ -42,6 +42,8 @@ Therefore, we should make use of a grid. The grid will store the status of each 
 </p>
 
 Here is the content of the grid:
+The size of the grid is getting updated during the game, according to the highest slice among all slices,
+Therefore the grid height is 3.
 
 <p align="center">
   <img src="images\seq2_b_grid.jpg" width="700">
