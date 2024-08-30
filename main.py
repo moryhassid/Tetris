@@ -27,14 +27,14 @@ STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = SQUARE_WIDTH
 class PuzzlePiece:
     def __init__(self):
         self.puzzles_types = [
-            # np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
+            np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
             np.array([[1, 1, 1, 1]]),
-            # np.array([[1, 1], [1, 1]]),
-            # np.array([[1, 1, 1], [0, 0, 1]]),
+            np.array([[1, 1], [1, 1]]),
+            np.array([[1, 1, 1], [0, 0, 1]]),
             np.array([[1, 1]]),
-            # np.array([[1, 1, 1], [0, 1, 0]]),
-            # np.array([[1, 1, 0], [0, 1, 1]]),
-            # np.array([[1, 0], [1, 1]])
+            np.array([[1, 1, 1], [0, 1, 0]]),
+            np.array([[1, 1, 0], [0, 1, 1]]),
+            np.array([[1, 0], [1, 1]])
         ]
         self.chosen_color = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
         self.start_pos_x = WIDTH_SCREEN // 2
@@ -47,6 +47,8 @@ class PuzzlePiece:
         self.puzzle_shape = np.rot90(self.puzzle_shape)
 
     def show_piece_on_screen(self, given_screen):
+        print("#" * 100)
+        print(self.puzzle_shape)
         for row_idx, row in enumerate(self.puzzle_shape):
             for col_idx, cell in enumerate(row):
                 # print(f'cell[{row_idx},{col_idx}] = {cell}')
@@ -105,19 +107,19 @@ class PuzzlePiece:
         # number_of_cells_fits_on_screen_along_x_axis = WIDTH_SCREEN // SQUARE_WIDTH
         # print(f'puzzle number in x axis: {cell_number}/{number_of_cells_fits_on_screen_along_x_axis}')
         height_for_given_x = collection.heights_per_width_slices[cell_number_start]
-        print(f'{height_for_given_x=}')
+        # print(f'{height_for_given_x=}')
 
-        if lowest_part_of_the_puzzle_y_axis == HEIGHT_SCREEN:
-            print('debug')
+        # if lowest_part_of_the_puzzle_y_axis == HEIGHT_SCREEN:
+        #     print('debug')
         if lowest_part_of_the_puzzle_y_axis == height_for_given_x:
             for idx in range(cell_number_start, cell_number_end):
-                print(f'{collection.heights_per_width_slices=}')
+                # print(f'{collection.heights_per_width_slices=}')
                 collection.heights_per_width_slices[idx] = \
                     height_for_given_x - SQUARE_HEIGHT * self.get_height_of_specific_column_in_puzzle(
                         puzzle_piece=self.puzzle_shape, column_number=idx - cell_number_start)
-            return True, self.puzzle_shape
+            return True, self.puzzle_shape, (cell_number_start, cell_number_end)
 
-        return False, None
+        return False, None, None
 
     # @staticmethod
     # def is_row_was_completed():
@@ -135,11 +137,15 @@ class CollectionOfPuzzles:
         # For following the perimeter of the bricks that are on the screen,
         # I'm using a list of heights per each slice of width SQUARE_WIDTH.
         self.heights_per_width_slices = [HEIGHT_SCREEN] * (WIDTH_SCREEN // SQUARE_WIDTH)
-        # self.grid = np.zeros((HEIGHT_SCREEN // SQUARE_HEIGHT, WIDTH_SCREEN // SQUARE_WIDTH), dtype=int)
         self.grid = []
 
     def add_piece_of_puzzle_to_collection(self, puzzle_piece):
         self.all_pieces_of_puzzles_so_far.append(puzzle_piece)
+
+    def update_all_pieces_of_puzzle_for_trimming(self, row_number_to_remove):
+        # TODO: Write the logic to iterate over all pieces of puzzles and
+        # modify the puzzle_shape and start_pos_y
+        pass
 
     #     for row_idx, row in enumerate(puzzle_piece.puzzle_shape):
     #         for col_idx, cell in enumerate(row):
@@ -170,8 +176,11 @@ class CollectionOfPuzzles:
     #     return len(full_rows)
 
     def show_all_pieces_on_screen(self, given_screen):
+        # print("*" * 100)
         for piece in self.all_pieces_of_puzzles_so_far:
+            # print(piece.puzzle_shape)
             piece.show_piece_on_screen(given_screen)
+        # print("*" * 100)
 
 
 if __name__ == '__main__':
@@ -196,7 +205,7 @@ if __name__ == '__main__':
     collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection(current_puzzle_piece)
 
     counter_puzzle_pieces = 1
-
+    score = 0
     while True:
         screen.fill(BACKGROUND_COLOR)
 
@@ -221,43 +230,58 @@ if __name__ == '__main__':
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_RIGHT]:
-            print('Right was pressed')
+            # print('Right was pressed')
             if not has_reached_left_right_borders:
                 current_puzzle_piece.move_right_piece_of_puzzle()
         elif keys[pygame.K_LEFT]:
-            print('Left was pressed')
+            # print('Left was pressed')
             if not has_reached_left_right_borders:
                 current_puzzle_piece.move_left_piece_of_puzzle()
         elif keys[pygame.K_UP]:
             current_puzzle_piece.rotate_piece_of_puzzle()
-            # counter_key_pressed += 1
-            # if counter_key_pressed == 2:
-            #     collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen] = np.rot90(
-            #         collection_of_pieces_of_puzzle_on_screen[puzzle_counter_appears_on_screen])
-            #     counter_key_pressed = 0
-            print('Up was pressed')
+            # print('Up was pressed')
         elif keys[pygame.K_DOWN]:
-            print('Down was pressed')
+            # print('Down was pressed')
             if not has_reached_floor:
                 current_puzzle_piece.move_down_piece_of_puzzle()
         elif keys[pygame.K_ESCAPE]:
             print('Mory is closing the game, he has pressed Escape button')
             exit(0)
 
-        has_reached_floor, puzzle_shape_reached = current_puzzle_piece.has_reached_bottom_of_screen(
+        has_reached_floor, puzzle_shape_reached, range_puzzle_on_x = current_puzzle_piece.has_reached_bottom_of_screen(
             collection_of_puzzle_pieces,
             counter_puzzle_pieces)
 
         if has_reached_floor:
-            collection_of_puzzle_pieces.grid = np.zeros((puzzle_shape_reached.shape[0], NUMBER_OF_BRICKS_PER_ROW),
-                                                        dtype=int)
-            # TODO: Should complete copying the previous values of the grid.
+            if counter_puzzle_pieces == 1:
+                collection_of_puzzle_pieces.grid = np.zeros((puzzle_shape_reached.shape[0], NUMBER_OF_BRICKS_PER_ROW),
+                                                            dtype=int)
+            start_col, end_col = range_puzzle_on_x
+            piece_puzzle_height = puzzle_shape_reached.shape[0]
+            piece_puzzle_width = puzzle_shape_reached.shape[1]
+            collection_of_puzzle_pieces.grid[0:0 + piece_puzzle_height,
+            start_col:start_col + piece_puzzle_width] += current_puzzle_piece.puzzle_shape
+            collection_of_puzzle_pieces.update_all_pieces_of_puzzle_for_trimming(row_number_to_remove=121212)
+            rows_status = np.all(collection_of_puzzle_pieces.grid == 1, axis=1)
+            number_of_completed_rows = np.sum(rows_status)
+            score += number_of_completed_rows
+
+            # print("#" * 30 + "Grid" + "#" * 30)
+            # print(collection_of_puzzle_pieces.grid)
+            # print("#" * 30)
+            print(f"We should remove {number_of_completed_rows} rows!!!")
+            print("Updating grid")
+            collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection()
+            collection_of_puzzle_pieces.grid = collection_of_puzzle_pieces.grid[~rows_status]
+            print("#" * 30 + "Grid" + "#" * 30)
+            print(collection_of_puzzle_pieces.grid)
+            print("#" * 30)
 
         has_reached_left_right_borders = current_puzzle_piece.has_reached_left_or_right_borders()
 
         # The piece puzzle is moving constantly down towards the ground.
         # until it meets another brick or the ground
-        print(f'heights_per_width_slices = {collection_of_puzzle_pieces.heights_per_width_slices}')
+        # print(f'heights_per_width_slices = {collection_of_puzzle_pieces.heights_per_width_slices}')
         if not has_reached_floor:
             current_puzzle_piece.move_down_piece_of_puzzle()
 
@@ -266,6 +290,6 @@ if __name__ == '__main__':
 
         # limits FPS to 60
         # dt is delta time in seconds since last frame, used for framerate independent physics.
-        dt = clock.tick(5) / 1000  # 1000
+        dt = clock.tick(3) / 1000  # 1000
 
     pygame.quit()
