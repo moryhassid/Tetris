@@ -27,29 +27,31 @@ STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS = SQUARE_WIDTH
 class PuzzlePiece:
     def __init__(self):
         self.puzzles_types = [
-            np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
-            np.array([[1, 1, 1, 1]]),
-            np.array([[1, 1], [1, 1]]),
-            np.array([[1, 1, 1], [0, 0, 1]]),
-            np.array([[1, 1]]),
-            np.array([[1, 1, 1], [0, 1, 0]]),
-            np.array([[1, 1, 0], [0, 1, 1]]),
-            np.array([[1, 0], [1, 1]])
+            np.array([[1] * 4]),
+            np.array([[0, 0, 0, 1], [1] * 4])
+            # np.array([[1, 1, 1, 1], [1, 0, 0, 0]]),
+            # np.array([[1, 1, 1, 1]]),
+            # np.array([[1, 1], [1, 1]]),
+            # np.array([[1, 1, 1], [0, 0, 1]]),
+            # np.array([[1, 1]]),
+            # np.array([[1, 1, 1], [0, 1, 0]]),
+            # np.array([[1, 1, 0], [0, 1, 1]]),
+            # np.array([[1, 0], [1, 1]])
         ]
         self.chosen_color = random.choice([BLUE, LIGHT_BLUE, GREEN, YELLOW, RED, ORANGE, PURPLE])
         self.start_pos_x = WIDTH_SCREEN // 2
         self.start_pos_y = 3 * SQUARE_HEIGHT
         NUM_TYPES_OF_PUZZLE_PIECES = len(self.puzzles_types)
         puzzle_number = random.randint(0, NUM_TYPES_OF_PUZZLE_PIECES - 1)
-        self.puzzle_shape = self.puzzles_types[puzzle_number]
+        self.puzzle_structure = self.puzzles_types[puzzle_number]
 
     def rotate_piece_of_puzzle(self):
-        self.puzzle_shape = np.rot90(self.puzzle_shape)
+        self.puzzle_structure = np.rot90(self.puzzle_structure)
 
     def show_piece_on_screen(self, given_screen):
         print("#" * 100)
-        print(self.puzzle_shape)
-        for row_idx, row in enumerate(self.puzzle_shape):
+        print(self.puzzle_structure)
+        for row_idx, row in enumerate(self.puzzle_structure):
             for col_idx, cell in enumerate(row):
                 # print(f'cell[{row_idx},{col_idx}] = {cell}')
 
@@ -88,7 +90,7 @@ class PuzzlePiece:
         self.start_pos_x += STEP_SIZE_TO_MOVE_PUZZLE_PIECE_ON_X_AXIS
 
     def has_reached_left_or_right_borders(self):
-        right_part_of_the_puzzle_x_axis = self.start_pos_x + self.puzzle_shape.shape[1] * SQUARE_WIDTH
+        right_part_of_the_puzzle_x_axis = self.start_pos_x + self.puzzle_structure.shape[1] * SQUARE_WIDTH
         left_part_of_the_puzzle_x_axis = self.start_pos_x
 
         if right_part_of_the_puzzle_x_axis >= WIDTH_SCREEN or left_part_of_the_puzzle_x_axis <= 0:
@@ -101,9 +103,9 @@ class PuzzlePiece:
         return len(np.where(puzzle_piece[:, column_number] > 0)[0])
 
     def has_reached_bottom_of_screen(self, collection, puzzle_number):
-        lowest_part_of_the_puzzle_y_axis = self.start_pos_y + self.puzzle_shape.shape[0] * SQUARE_HEIGHT
+        lowest_part_of_the_puzzle_y_axis = self.start_pos_y + self.puzzle_structure.shape[0] * SQUARE_HEIGHT
         cell_number_start = self.start_pos_x // SQUARE_WIDTH
-        cell_number_end = (self.start_pos_x + self.puzzle_shape.shape[1] * SQUARE_WIDTH) // SQUARE_WIDTH
+        cell_number_end = (self.start_pos_x + self.puzzle_structure.shape[1] * SQUARE_WIDTH) // SQUARE_WIDTH
         # number_of_cells_fits_on_screen_along_x_axis = WIDTH_SCREEN // SQUARE_WIDTH
         # print(f'puzzle number in x axis: {cell_number}/{number_of_cells_fits_on_screen_along_x_axis}')
         height_for_given_x = collection.heights_per_width_slices[cell_number_start]
@@ -116,8 +118,8 @@ class PuzzlePiece:
                 # print(f'{collection.heights_per_width_slices=}')
                 collection.heights_per_width_slices[idx] = \
                     height_for_given_x - SQUARE_HEIGHT * self.get_height_of_specific_column_in_puzzle(
-                        puzzle_piece=self.puzzle_shape, column_number=idx - cell_number_start)
-            return True, self.puzzle_shape, (cell_number_start, cell_number_end)
+                        puzzle_piece=self.puzzle_structure, column_number=idx - cell_number_start)
+            return True, self.puzzle_structure, (cell_number_start, cell_number_end)
 
         return False, None, None
 
@@ -129,6 +131,13 @@ class PuzzlePiece:
     def update_heights_per_width_slices_after_row_completed(collection):
         for idx in range(len(collection.heights_per_width_slices)):
             collection.heights_per_width_slices[idx] -= SQUARE_HEIGHT
+
+    def trim_puzzle(self):
+        # puzzle1[:1, :]
+        self.puzzle_structure = self.puzzle_structure[:1, :]
+
+    def __str__(self):
+        return f'{self.puzzle_structure=}\n{self.chosen_color=}\n{self.start_pos_x=}\n{self.start_pos_y=}\n'
 
 
 class CollectionOfPuzzles:
@@ -143,6 +152,9 @@ class CollectionOfPuzzles:
         self.all_pieces_of_puzzles_so_far.append(puzzle_piece)
 
     def update_all_pieces_of_puzzle_for_trimming(self, row_number_to_remove):
+        for puzzle in range(104545):
+            puzzle.trim_puzzle()
+
         # TODO: Write the logic to iterate over all pieces of puzzles and
         # modify the puzzle_shape and start_pos_y
         pass
@@ -180,6 +192,12 @@ class CollectionOfPuzzles:
         for piece in self.all_pieces_of_puzzles_so_far:
             # print(piece.puzzle_shape)
             piece.show_piece_on_screen(given_screen)
+        # print("*" * 100)
+
+    def print_all_pieces(self):
+        # print("*" * 100)
+        for idx, piece in enumerate(self.all_pieces_of_puzzles_so_far):
+            print(f'{idx}) {piece}')
         # print("*" * 100)
 
 
@@ -253,6 +271,8 @@ if __name__ == '__main__':
             counter_puzzle_pieces)
 
         if has_reached_floor:
+            collection_of_puzzle_pieces.print_all_pieces()
+            # time.sleep(3)  # TODO: remove
             if counter_puzzle_pieces == 1:
                 collection_of_puzzle_pieces.grid = np.zeros((puzzle_shape_reached.shape[0], NUMBER_OF_BRICKS_PER_ROW),
                                                             dtype=int)
@@ -260,10 +280,14 @@ if __name__ == '__main__':
             piece_puzzle_height = puzzle_shape_reached.shape[0]
             piece_puzzle_width = puzzle_shape_reached.shape[1]
             collection_of_puzzle_pieces.grid[0:0 + piece_puzzle_height,
-            start_col:start_col + piece_puzzle_width] += current_puzzle_piece.puzzle_shape
-            collection_of_puzzle_pieces.update_all_pieces_of_puzzle_for_trimming(row_number_to_remove=121212)
+            start_col:start_col + piece_puzzle_width] += current_puzzle_piece.puzzle_structure
+            # collection_of_puzzle_pieces.update_all_pieces_of_puzzle_for_trimming(row_number_to_remove=121212)
             rows_status = np.all(collection_of_puzzle_pieces.grid == 1, axis=1)
             number_of_completed_rows = np.sum(rows_status)
+            if number_of_completed_rows > 0:
+                completed_rows_index = np.where(rows_status)
+                print("Rows index which were filled completely: ", completed_rows_index)
+                print("Debug")
             score += number_of_completed_rows
 
             # print("#" * 30 + "Grid" + "#" * 30)
@@ -271,7 +295,7 @@ if __name__ == '__main__':
             # print("#" * 30)
             print(f"We should remove {number_of_completed_rows} rows!!!")
             print("Updating grid")
-            collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection()
+            # collection_of_puzzle_pieces.add_piece_of_puzzle_to_collection()
             collection_of_puzzle_pieces.grid = collection_of_puzzle_pieces.grid[~rows_status]
             print("#" * 30 + "Grid" + "#" * 30)
             print(collection_of_puzzle_pieces.grid)
@@ -290,6 +314,6 @@ if __name__ == '__main__':
 
         # limits FPS to 60
         # dt is delta time in seconds since last frame, used for framerate independent physics.
-        dt = clock.tick(3) / 1000  # 1000
+        dt = clock.tick(10) / 1  # 1000
 
     pygame.quit()
