@@ -272,7 +272,6 @@ if __name__ == '__main__':
 
         if has_reached_floor:
             collection_of_puzzle_pieces.print_all_pieces()
-            # time.sleep(3)  # TODO: remove
             if counter_puzzle_pieces == 1:
                 collection_of_puzzle_pieces.grid = np.zeros((puzzle_shape_reached.shape[0], NUMBER_OF_BRICKS_PER_ROW),
                                                             dtype=int)
